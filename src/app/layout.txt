@@ -1,0 +1,53 @@
+src/
+  ├── app/
+  │     ├── core/
+  |     |   ├── guards/
+  |     |   ├── interceptors/
+  |     |   ├── services/
+  |     |   ├── models/
+  |     |   ├── api/
+  |     |   ├── utils/
+  |     |   ├── constants/
+  |     |   └── error-handler/
+  │     ├── shared/
+  |     |    ├── components/
+  |     |    │──   ├── table/
+  |     |    │──   ├── modal/
+  |     |    │──   ├── breadcrumb/
+  |     |    │──   └── card/
+  |     |    ├── directives/
+  |     |    ├── pipes/
+  |     |    └── shared.module.ts
+  │     ├── layout/
+  |     |    ├── header/
+  |     |    ├── sidebar/
+  |     |    ├── footer/
+  |     |    ├── layout.component.html
+  |     |    └── layout.module.ts
+  │     ├── auth/
+  |     |    ├── pages/
+  |     |    ├── services/
+  |     |    ├── models/
+  |     |    └── auth.module.ts
+  │     ├── modules/
+  │     │      ├── dashboard/
+  │     │      ├── inventory/
+  │     │      ├── products/
+  │     │      ├── sales/
+  │     │      ├── accounts/
+  │     │      ├── reports/
+  │     │      └── settings/
+  │     ├── state/
+  |     |      ├── inventory/
+  |     |      ├── products/
+  |     |      ├── auth/
+  |     |      └── app.state.ts
+  │     ├── features/
+  │     │      └── Medican/
+  │     │      └── Category/
+  │     │      └── Brand/
+  │     │      └── .../
+  │     ├── app-routing.module.ts
+  │     └── app.module.ts
+  ├── assets/
+  └── environments/
