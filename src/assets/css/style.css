@@ -35191,7 +35191,7 @@ a.link-hover:hover {
 .login-body .login-wrapper .loginbox .login-right .login-right-wrap .login-info img {
   border-radius: 100px;
   border: 2px solid var(--Stroke, rgba(145, 158, 171, 0.3));
-  background: url(_path-to-image.html>), lightgray 50%/cover no-repeat;
+  /* background: url(_path-to-image.html>), lightgray 50%/cover no-repeat; */
 }
 .login-body .login-wrapper .loginbox .login-right .login-right-wrap .login-info p {
   font-size: 14px;
