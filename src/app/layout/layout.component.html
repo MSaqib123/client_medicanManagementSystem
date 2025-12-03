@@ -1,1 +1,28 @@
-<p>layout works!</p>
+<div class="main-wrapper">
+
+    <!-- Header -->
+    <app-header></app-header>
+
+    <!-- Sidebar -->
+    <app-sidebar></app-sidebar>
+
+    <!-- horizontal sidebar -->
+    <app-horizontal-sidebar></app-horizontal-sidebar>
+
+    <!-- two-col-sidebar -->
+    <app-two-col-sidebar></app-two-col-sidebar>
+
+    <!-- Page Content -->
+    <div class="page-wrapper">
+        <div class="content">
+            <router-outlet></router-outlet>
+        </div>
+       
+        <!-- Footer -->
+        <app-footer></app-footer>
+    </div>
+
+	<!-- Add Stock -->
+    <app-add-stock></app-add-stock>
+    
+</div>
