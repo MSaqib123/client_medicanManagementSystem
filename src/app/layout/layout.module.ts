@@ -1,20 +1,21 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { LayoutComponent } from './layout.component';
-import { HeaderComponent } from './header/header.component';
-import { SidebarComponent } from './sidebar/sidebar.component';
-import { FooterComponent } from './footer/footer.component';
-import { RouterModule } from '@angular/router';
+import { CommonModule } from "@angular/common";
+import { FooterComponent } from "./footer/footer.component";
+import { HeaderComponent } from "./header/header.component";
+import { LayoutComponent } from "./layout.component";
+import { SidebarComponent } from "./sidebar/sidebar.component";
+import { RouterModule } from "@angular/router";
+import { NgModule } from "@angular/core";
 
 @NgModule({
-
+  declarations: [
+    LayoutComponent,   // <-- MUST BE HERE
+    SidebarComponent,
+    HeaderComponent,
+    FooterComponent
+  ],
   imports: [
     CommonModule,
-    RouterModule,
-    LayoutComponent,
-    HeaderComponent,
-    SidebarComponent,
-    FooterComponent
+    RouterModule
   ],
   exports: [LayoutComponent]
 })

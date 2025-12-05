@@ -9,10 +9,17 @@ import { AddStockComponent } from "./add-stock/add-stock.component";
 
 @Component({
   selector: 'app-layout',
-  imports: [SidebarComponent, HeaderComponent, RouterOutlet, FooterComponent, HorizontalSidebarComponent, TwoColSidebarComponent, AddStockComponent],
+  standalone: true,   // <--- IMPORTANT
+  imports: [
+    SidebarComponent,
+    HeaderComponent,
+    RouterOutlet,
+    FooterComponent,
+    HorizontalSidebarComponent,
+    TwoColSidebarComponent,
+    AddStockComponent
+  ],
   templateUrl: './layout.component.html',
-  styleUrl: './layout.component.css'
+  styleUrls: ['./layout.component.css']
 })
-export class LayoutComponent {
-
-}
+export class LayoutComponent {}
