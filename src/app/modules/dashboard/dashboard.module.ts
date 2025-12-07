@@ -1,14 +1,11 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { DashboardComponent } from './dashboard.component'; // Your component with the dashboard HTML
-// Import any shared modules or other dependencies (e.g., FormsModule if needed)
+import { NgModule } from "@angular/core";
+import { DashboardComponent } from "./dashboard.component";
+import { DashboardRoutingModule } from "./dashbarod-routing.module";
+import { CommonModule } from "@angular/common";
 
 @NgModule({
-  declarations: [
-  ],
-  imports: [
-    CommonModule,
-    DashboardComponent,
-  ]
+  declarations:[DashboardComponent],
+  imports:[DashboardRoutingModule,CommonModule]
 })
-export class DashboardModule { }
+
+export class DashboardModule {}
