@@ -10,6 +10,8 @@ export interface Brand {
   createdByUserId: string;
   updatedAt?: Date;
   updatedByUserId?: string;
+  status: 'active' | 'inactive';
+  imageUrl?: string;
 }
 
 /**

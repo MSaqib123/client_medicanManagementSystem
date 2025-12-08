@@ -4,6 +4,7 @@ import { BrandComponent } from './brand.component';
 import { BrandRoutingModule } from './brand-routing.module';
 import { BrandListComponent } from "./brand-list/brand-list.component";
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
 
 
 @NgModule({
@@ -16,6 +17,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     // DeleteComponent
   ],
   imports: [
+    ReactiveFormsModule,
     CommonModule,
     BrandRoutingModule,
     RouterLink,

@@ -9,7 +9,7 @@ import { LayoutModule } from './layout/layout.module';
   selector: 'app-root',
   imports: [
     RouterOutlet,
-    LayoutModule   
+    LayoutModule,
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
