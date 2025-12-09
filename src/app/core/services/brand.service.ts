@@ -1,6 +1,6 @@
 // core/services/brand.service.ts
 import { Injectable, signal, computed, effect, Signal } from '@angular/core';
-import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
+import { Observable, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, shareReplay, tap, map, catchError } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Brand, CreateBrand } from '../models';
@@ -17,12 +17,26 @@ import { HttpClient } from '@angular/common/http';
  */
 @Injectable({ providedIn: 'root' })
 export class BrandService extends ApiService<Brand[]> {
-  delete(id: any) {
-    throw new Error('Method not implemented.');
+
+
+  update(id: string, payload: Partial<Brand>): Observable<Brand> {
+    // Real: return this.put(`${API_ENDPOINTS.brands}/${id}`, payload);
+    // Stub for now
+    return of({ ...payload, id } as Brand).pipe(
+      tap(() => this.invalidateCache()),
+      catchError(err => {
+        console.error('Update error', err);
+        return of({} as Brand);
+      })
+    );
   }
-  update(id: any, payload: CreateBrand) {
-    throw new Error('Method not implemented.');
+
+  delete(id: string): Observable<void> {
+    // Real: return this.delete(`${API_ENDPOINTS.brands}/${id}`);
+    // Stub
+    return of(undefined).pipe(tap(() => this.invalidateCache()));
   }
+
   // Signal state
   private searchSignal = signal<string>('');
   private pageSignal = signal<number>(1);
@@ -125,11 +139,11 @@ export class BrandService extends ApiService<Brand[]> {
 
   // Update, delete similar (tap to invalidate, return Signal option)
 
-  private invalidateCache(): void {
+  invalidateCache(): void {
     this.brandsCache.set([]);  // Trigger effect refetch
   }
 
-  private fetchBrands(params: any): Observable<Brand[]> {
+  fetchBrands(params: any): Observable<Brand[]> {
     // Internal fetch (debounced RxJS)
     return this.getBrands(params).pipe(shareReplay(1));
   }
