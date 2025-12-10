@@ -33,6 +33,7 @@
               }
             ],
             "styles": [
+              "node_modules/datatables.net-dt/css/dataTables.dataTables.css",
               "node_modules/ngx-toastr/toastr.css",
               "src/styles.css",
               "src/assets/css/bootstrap.min.css",
@@ -52,7 +53,8 @@
               "src/assets/js/jquery-3.7.1.min.js",
               "src/assets/js/feather.min.js",
               "src/assets/js/jquery.slimscroll.min.js",
-              "src/assets/js/jquery.dataTables.min.js",
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/datatables.net/js/dataTables.min.js",
               "src/assets/js/dataTables.bootstrap5.min.js",
               "src/assets/js/bootstrap.bundle.min.js",
               "src/assets/plugins/apexchart/apexcharts.min.js",
