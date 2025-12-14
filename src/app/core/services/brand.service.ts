@@ -62,7 +62,7 @@ export class BrandService extends ApiService<Brand[]> {
     // options?: { useSignals?: boolean } = {}
   ) {
     // super(http, options);
-    super(http);
+    super(http, { useSignals: true });
     // Effect: Auto-fetch on signal change
     effect(() => {
       const search = this.searchSignal();
@@ -83,6 +83,7 @@ export class BrandService extends ApiService<Brand[]> {
     return this.get(API_ENDPOINTS.brands, fullParams)
       .pipe(
         tap(brands => {
+          console.log('Fetched brands:', brands);
           if (this.useSignals) this.brandsCache.set(brands);  // Update signal if mode on
         }),
         map((brands: any[]) => brands.sort((a, b) => a.name.localeCompare(b.name)))
