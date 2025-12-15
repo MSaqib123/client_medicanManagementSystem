@@ -1,11 +1,11 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { BrandComponent } from './brand.component';
 import { BrandRoutingModule } from './brand-routing.module';
 import { BrandListComponent } from "./brand-list/brand-list.component";
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ReactiveFormsModule } from '@angular/forms';
-
+import { DataTablesModule } from 'angular-datatables';
 
 @NgModule({
   declarations: [
@@ -21,7 +21,9 @@ import { ReactiveFormsModule } from '@angular/forms';
     CommonModule,
     BrandRoutingModule,
     RouterLink,
-    RouterLinkActive
+    RouterLinkActive,
+    DatePipe,
+    DataTablesModule
 ]
 })
-export class BrandModule { }
+export class BrandModule {}
