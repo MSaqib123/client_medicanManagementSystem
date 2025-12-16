@@ -132,11 +132,18 @@
                 </td>
                 <td>
                   <div class="d-flex align-items-center">
-                    <a href="javascript:void(0);" class="avatar avatar-md bg-light-900 p-1 me-2">
+                    <!-- <a href="javascript:void(0);" class="avatar avatar-md bg-light-900 p-1 me-2">
                       <img class="object-fit-contain" [src]="brand.imageUrl || 'assets/img/brand/default.png'" [alt]="brand.name">
-                    </a>
+                    </a> -->
                     <a href="javascript:void(0);">{{ brand.name }}</a>
                   </div>
+                </td>
+                <td>{{ brand.createdAt | date:'medium' }}</td>  <!-- Added: Created Date -->
+                <td>
+                  <span
+                        [ngClass]="{ 'bg-success': brand.status === 'active', 'bg-danger': brand.status === 'inactive' }">
+                    {{ brand.status || 'N/A' }}
+                  </span>
                 </td>
                 <td class="action-table-data">
                   <div class="edit-delete-action">
