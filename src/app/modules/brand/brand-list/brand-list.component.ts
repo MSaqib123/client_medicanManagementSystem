@@ -141,11 +141,10 @@ export class BrandListComponent {
    * Open add modal.
    */
   openAddModal(): void {
-    // console.log('abc')
-    // this.isEditing.set(false);
-    // this.addEditForm.reset({ status: 'Active' });
-    // const modal = new bootstrap.Modal(this.addBrandModal.nativeElement);
-    // modal.show();
+    this.isEditing.set(false);
+    this.addEditForm.reset({ status: 'Active' });
+    const modal = new bootstrap.Modal(this.addBrandModal.nativeElement);
+    modal.show();
   }
 
   /**

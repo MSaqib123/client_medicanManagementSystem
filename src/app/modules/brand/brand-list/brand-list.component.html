@@ -29,9 +29,9 @@
     </li>
   </ul>
   <div class="page-btn">
-    <a href="#" class="btn btn-primary" (click)="openAddModal()">
+    <button class="btn btn-primary" (click)="openAddModal()">
       <i class="ti ti-circle-plus me-1"></i>Add Brand
-    </a>
+    </button>
   </div>
 </div>
 
@@ -147,12 +147,12 @@
                 </td>
                 <td class="action-table-data">
                   <div class="edit-delete-action">
-                    <a class="me-2 p-2" href="#" data-bs-toggle="modal" data-bs-target="#edit-brand" >
+                    <button class="me-2 p-2" (click)="openEditModal(brand)" class="btn btn-primary me-2 p-2">
                       <i data-feather="edit" class="feather-edit"></i>
-                    </a>
-                    <a data-bs-toggle="modal" data-bs-target="#delete-modal" class="p-2" href="javascript:void(0);">
+                    </button>
+                    <button class="p-2" (click)="openDeleteModal(brand)"  class="btn btn-danger me-2 p-2">
                       <i data-feather="trash-2" class="feather-trash-2"></i>
-                    </a>
+                    </button>
                   </div>
                 </td>
               </tr>
