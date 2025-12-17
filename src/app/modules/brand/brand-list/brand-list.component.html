@@ -29,7 +29,7 @@
     </li>
   </ul>
   <div class="page-btn">
-    <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#add-brand">
+    <a href="#" class="btn btn-primary" (click)="openAddModal()">
       <i class="ti ti-circle-plus me-1"></i>Add Brand
     </a>
   </div>
@@ -138,7 +138,7 @@
                     <a href="javascript:void(0);">{{ brand.name }}</a>
                   </div>
                 </td>
-                <td>{{ brand.createdAt | date:'medium' }}</td>  <!-- Added: Created Date -->
+                <td>{{ brand.createdAt | date:'medium' }}</td> 
                 <td>
                   <span
                         [ngClass]="{ 'bg-success': brand.status === 'active', 'bg-danger': brand.status === 'inactive' }">

@@ -26,9 +26,7 @@ declare var bootstrap: any;
 export class BrandListComponent {
   dtOptions: DataTables.Settings = {};
   dtTrigger: Subject<any> = new Subject<any>();  // For re-rendering
-
-  private brandSvc = inject(BrandService);
-
+  
   // Signals from service (reactive)
   brands = signal<Brand[]>([]);  // Signal<Brand[]>
   loading = signal<boolean>(false);  // Local loading (sync with service)
@@ -56,6 +54,7 @@ export class BrandListComponent {
   @ViewChild('deleteModal') deleteModal!: ElementRef;
 
   constructor(
+    private brandSvc: BrandService,
     private fb: FormBuilder,
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef
@@ -94,43 +93,12 @@ export class BrandListComponent {
   /**
    * Load brands (handles loading/error).
    */
-  // loadBrands(): void {
-  //   this.loading.set(true);
-  //   this.error.set('');
-  //   this.brandSvc.getBrands({ page: 1 }).subscribe({ 
-  //     next: (brands: Brand[]) => {
-  //       console.log(brands);  // This should show the 2 records
-  //       this.brands.set(brands);  // Store data locally
-
-  //       // Fixed computed: Filter returns boolean
-  //       this.filteredBrands = computed(() => this.brands().filter(b => {
-  //         console.log(b);  // Logs each brand during computation
-  //         const search = this.searchTerm().toLowerCase();
-  //         return !search || b.name.toLowerCase().includes(search);  // Include all if no search, else filter by name
-  //       }));
-
-  //       console.log(this.filteredBrands(), "abc");  // Log the computed VALUE (array)
-  //       console.log(this.brands(), "def");  // Log the original brands array
-  //       //this.loading.set(false);
-  //     },
-  //     error: (err: any) => {
-  //       this.loading.set(false);
-  //       this.error.set('Failed to load brands: ' + (err.message || 'Unknown error'));
-  //       this.toastr.error(this.error());
-  //     }
-  //   });
-  // }
-
   loadBrands(): void {
     this.loading.set(true);
     this.error.set('');
     this.brandSvc.getBrands({ page: 1 }).subscribe({ 
       next: (brands: Brand[]) => {
-        console.log(brands);  // This should show the 2 records
         this.brands.set(brands);  // Store data locally
-
-        console.log(this.filteredBrands(), "abc");  // Log the computed VALUE (array)
-        console.log(this.brands(), "def");  // Log the original brands array
         this.loading.set(false);
       },
       error: (err: any) => {
@@ -173,10 +141,11 @@ export class BrandListComponent {
    * Open add modal.
    */
   openAddModal(): void {
-    this.isEditing.set(false);
-    this.addEditForm.reset({ status: 'Active' });
-    const modal = new bootstrap.Modal(this.addBrandModal.nativeElement);
-    modal.show();
+    // console.log('abc')
+    // this.isEditing.set(false);
+    // this.addEditForm.reset({ status: 'Active' });
+    // const modal = new bootstrap.Modal(this.addBrandModal.nativeElement);
+    // modal.show();
   }
 
   /**
@@ -184,6 +153,7 @@ export class BrandListComponent {
    * @param brand Brand to edit.
    */
   openEditModal(brand: Brand): void {
+    console.log(brand)
     this.isEditing.set(true);
     this.selectedBrand.set(brand);
     this.addEditForm.patchValue({
