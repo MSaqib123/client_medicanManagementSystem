@@ -17,26 +17,6 @@ import { HttpClient } from '@angular/common/http';
  */
 @Injectable({ providedIn: 'root' })
 export class BrandService extends ApiService<Brand[]> {
-
-
-  update(id: string, payload: Partial<Brand>): Observable<Brand> {
-    // Real: return this.put(`${API_ENDPOINTS.brands}/${id}`, payload);
-    // Stub for now
-    return of({ ...payload, id } as Brand).pipe(
-      tap(() => this.invalidateCache()),
-      catchError(err => {
-        console.error('Update error', err);
-        return of({} as Brand);
-      })
-    );
-  }
-
-  delete(id: string): Observable<void> {
-    // Real: return this.delete(`${API_ENDPOINTS.brands}/${id}`);
-    // Stub
-    return of(undefined).pipe(tap(() => this.invalidateCache()));
-  }
-
   // Signal state
   private searchSignal = signal<string>('');
   private pageSignal = signal<number>(1);
@@ -82,11 +62,18 @@ export class BrandService extends ApiService<Brand[]> {
     const fullParams = { ...params, pageSize: params?.pageSize || APP_CONSTANTS.PAGINATION.DEFAULT_PAGE_SIZE };
     return this.get(API_ENDPOINTS.brands, fullParams)
       .pipe(
+        map((brands: any[]) =>
+          brands
+            .map(b => ({
+              ...b,
+              status: b.status ?? 'active'   // 👈 default status if missing or null
+            }) as Brand)
+            .sort((a, b) => a.name.localeCompare(b.name))
+        ),
         tap(brands => {
-          console.log('Fetched brands:', brands);
-          if (this.useSignals) this.brandsCache.set(brands);  // Update signal if mode on
-        }),
-        map((brands: any[]) => brands.sort((a, b) => a.name.localeCompare(b.name)))
+          console.log('Normalized brands:', brands);
+          if (this.useSignals) this.brandsCache.set(brands);
+        })
       );
   }
 
@@ -119,12 +106,37 @@ export class BrandService extends ApiService<Brand[]> {
    * Create - RxJS.
    */
   create(brand: CreateBrand): Observable<Brand> {
-    return this.post(API_ENDPOINTS.brands, brand)
-      .pipe(
-        tap(() => this.invalidateCache()),  // Effect triggers refetch
-        catchError(this.errorHandler.handleError<Brand>('createBrand'))
-      );
+    const payload = { name: brand.name };
+
+    return this.post<Brand>(API_ENDPOINTS.brands, payload).pipe(
+      tap(newBrand => {
+        this.addToCache({
+          ...newBrand,
+          status: newBrand.status ?? 'active'
+        });
+      }),
+      catchError(this.errorHandler.handleError<Brand>('createBrand'))
+    );
   }
+
+
+  update(id: string, payload: Partial<Brand>): Observable<Brand> {
+    let s = { name: payload.name, id: id };
+    console.log(s)
+    return this.put<Brand>(`${API_ENDPOINTS.brands}/${id}`, s).pipe(
+      tap(updated => this.updateInCache(id, {...updated, status: updated.status ?? 'active'})),
+      catchError(this.errorHandler.handleError<Brand>('updateBrand'))
+    );
+  }
+
+
+  deleteBrand(id: string): Observable<void> {
+    return this.delete<void>(`${API_ENDPOINTS.brands}/${id}`).pipe(
+      tap(() => this.removeFromCache(id)),
+      catchError(this.errorHandler.handleError<void>('deleteBrand'))
+    );
+  }
+
 
   /**
    * Create with Signal update.
@@ -138,10 +150,21 @@ export class BrandService extends ApiService<Brand[]> {
     return resultSignal.asReadonly();
   }
 
-  // Update, delete similar (tap to invalidate, return Signal option)
+  
+  private addToCache(brand: Brand): void {
+    this.brandsCache.update(list => [...list, brand]);
+  }
 
-  invalidateCache(): void {
-    this.brandsCache.set([]);  // Trigger effect refetch
+  private updateInCache(id: string, updated: Brand): void {
+    this.brandsCache.update(list =>
+      list.map(b => b.id === id ? updated : b)
+    );
+  }
+
+  private removeFromCache(id: string): void {
+    this.brandsCache.update(list =>
+      list.filter(b => b.id !== id)
+    );
   }
 
   fetchBrands(params: any): Observable<Brand[]> {

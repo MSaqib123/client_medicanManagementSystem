@@ -5,7 +5,7 @@
  */
 import { Injectable } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
 /**
@@ -30,19 +30,25 @@ export function handleError<T>(operation = 'operation', result?: T) {
 
 @Injectable({ providedIn: 'root' })
 export class ErrorHandlerService {
-  handleError<T>(arg0: string): (err: any, caught: Observable<import("../models").Brand[]>) => import("rxjs").ObservableInput<any> {
-      throw new Error('Method not implemented.');
-  }
+  
   constructor(private toastr: ToastrService) {}
 
-  handleHttpError(error: HttpErrorResponse, operation: string): Observable<never> {
-    const msg = this.mapError(error);
-    this.toastr.error(msg, operation);
-    return throwError(() => error);
+  handleError<T>(operation = 'operation', result?: T) {
+    return (error: HttpErrorResponse): Observable<T> => {
+
+      console.group(`${operation} failed`);
+      console.error(error);
+      console.groupEnd();
+
+      const msg = this.mapError(error);
+      this.toastr.error(msg, operation);
+
+      // 👈 IMPORTANT: return fallback, NOT throw
+      return of(result as T);
+    };
   }
 
   private mapError(error: HttpErrorResponse): string {
-    // Advanced mapping
     const messages: { [key: number]: string } = {
       400: 'Invalid input',
       401: 'Unauthorized - login again',

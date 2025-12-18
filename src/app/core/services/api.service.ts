@@ -61,20 +61,69 @@ export class ApiService<T = any> {
 
   // Similar for post, put, delete (add loading/error signals)
 
-  post(endpoint: string, body: any): Observable<T> {
+  post<T>(endpoint: string, body: any): Observable<T> {
     this.loadingSignal.set(true);
     return this.http.post<T>(`${this.baseUrl}${endpoint}`, body, { headers: this.headers })
       .pipe(
         retry(this.retryCount),
-        catchError(this.handleError),
         map(data => {
           this.loadingSignal.set(false);
           return data;
         })
       );
   }
+  
 
-  // ... (put/delete similar)
+   /* -------------------- PUT (FULL UPDATE) -------------------- */
+  put<T>(endpoint: string, body: any): Observable<T> {
+    this.loadingSignal.set(true);
+
+    return this.http.put<T>(`${this.baseUrl}${endpoint}`, body, {
+      headers: this.headers
+    }).pipe(
+      retry(this.retryCount),
+      map(data => {
+        this.loadingSignal.set(false);
+        return data;
+      })
+    );
+  }
+
+  /* -------------------- PATCH (PARTIAL UPDATE) -------------------- */
+  patch<T>(endpoint: string, body: Partial<T>): Observable<T> {
+    this.loadingSignal.set(true);
+
+    return this.http.patch<T>(`${this.baseUrl}${endpoint}`, body, {
+      headers: this.headers
+    }).pipe(
+      retry(this.retryCount),
+      map(data => {
+        this.loadingSignal.set(false);
+        return data;
+      })
+    );
+  }
+
+  /* -------------------- DELETE -------------------- */
+  delete<T>(endpoint: string, params?: any): Observable<T> {
+    this.loadingSignal.set(true);
+
+    let httpParams = new HttpParams();
+    Object.keys(params || {}).forEach(key =>
+      httpParams = httpParams.set(key, params[key])
+    );
+
+    return this.http.delete<T>(`${this.baseUrl}${endpoint}`, {
+      params: httpParams,
+      headers: this.headers
+    }).pipe(
+      retry(this.retryCount),
+      map(data => {
+        this.loadingSignal.set(false);
+        return data;
+      })
+    );
+  }
 
   /**
    * Handle error with signal update.

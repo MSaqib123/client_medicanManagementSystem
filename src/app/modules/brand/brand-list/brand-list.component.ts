@@ -99,6 +99,9 @@ export class BrandListComponent {
     this.brandSvc.getBrands({ page: 1 }).subscribe({ 
       next: (brands: Brand[]) => {
         this.brands.set(brands);  // Store data locally
+        this.filteredBrands = computed(() => this.brands().filter(b => 
+          b.name.toLowerCase().includes(this.searchTerm().toLowerCase())
+        ));
         this.loading.set(false);
       },
       error: (err: any) => {
@@ -152,7 +155,6 @@ export class BrandListComponent {
    * @param brand Brand to edit.
    */
   openEditModal(brand: Brand): void {
-    console.log(brand)
     this.isEditing.set(true);
     this.selectedBrand.set(brand);
     this.addEditForm.patchValue({
@@ -175,39 +177,24 @@ export class BrandListComponent {
 
     const payload: CreateBrand = this.addEditForm.value;
     this.loading.set(true);
-    this.error.set('');
 
-    if (this.isEditing()) {
-      const id = this.selectedBrand()?.id;
-      if (id) {
-        this.brandSvc.update(id, payload).subscribe({
-          next: () => {
-            this.loading.set(false);
-            this.toastr.success('Brand updated');
-            this.closeModal('edit-brand');
-            this.brandSvc.invalidateCache();  // Refetch
-          },
-          error: (err: any) => {
-            this.loading.set(false);
-            this.toastr.error('Update failed: ' + (err.message || 'Unknown'));
-          }
-        });
+    const request$ = this.isEditing()
+      ? this.brandSvc.update(this.selectedBrand()!.id, payload)
+      : this.brandSvc.create(payload);
+
+    request$.subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.toastr.success(this.isEditing() ? 'Brand updated' : 'Brand added');
+        this.closeModal(this.isEditing() ? 'edit-brand' : 'add-brand');
+      },
+      error: err => {
+        this.loading.set(false);
+        this.toastr.error(err.message || 'Operation failed');
       }
-    } else {
-      this.brandSvc.create(payload).subscribe({
-        next: () => {
-          this.loading.set(false);
-          this.toastr.success('Brand added');
-          this.closeModal('add-brand');
-          this.brandSvc.invalidateCache();
-        },
-        error: (err: any) => {
-          this.loading.set(false);
-          this.toastr.error('Add failed: ' + (err.message || 'Unknown'));
-        }
-      });
-    }
+    });
   }
+
 
   /**
    * Open delete modal.
@@ -225,14 +212,16 @@ export class BrandListComponent {
   confirmDelete(): void {
     const id = this.selectedBrand()?.id;
     if (id) {
+      console.log(id)
       this.loading.set(true);
       this.error.set('');
-      this.brandSvc.delete(id).subscribe({
+      this.brandSvc.deleteBrand(id).subscribe({
         next: () => {
           this.loading.set(false);
           this.toastr.success('Brand deleted');
           this.closeModal('delete-modal');
-          this.brandSvc.invalidateCache();
+          this.filteredBrands().filter(b => b.id !== id);
+          // this.brandSvc.invalidateCache();
         },
         error: (err: any) => {
           this.loading.set(false);
@@ -279,7 +268,6 @@ export class BrandListComponent {
    * Export PDF (stub).
    */
   exportToPdf(): void {
-    console.log('PDF Export:', this.brands());
     this.toastr.info('PDF exported');
   }
 
@@ -287,7 +275,6 @@ export class BrandListComponent {
    * Export Excel (stub).
    */
   exportToExcel(): void {
-    console.log('Excel Export:', this.brands());
     this.toastr.info('Excel exported');
   }
 
@@ -295,7 +282,7 @@ export class BrandListComponent {
    * Refresh.
    */
   refresh(): void {
-    this.brandSvc.invalidateCache();
+    // this.brandSvc.invalidateCache();
     this.toastr.info('Refreshed');
   }
 
