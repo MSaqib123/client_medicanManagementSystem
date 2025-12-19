@@ -1,21 +1,16 @@
-
-import { Component, signal, computed, effect, ChangeDetectorRef, ViewChild, ElementRef, inject } from '@angular/core';
+import { Component, signal, computed, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink, RouterLinkActive } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { BrandService } from '../../../core/services/brand.service';
 import { Brand, CreateBrand } from '../../../core/models';
 import { APP_CONSTANTS } from '../../../core/constants/app.constants';
-import { DateUtils } from '../../../core/utils/date.utils';
 import { ValidationUtils } from '../../../core/utils/validation.utils';
-import { Subject } from 'rxjs';
-import { DataTablesModule } from 'angular-datatables';
 declare var bootstrap: any;
 
 /**
  * BrandListComponent - Signal-driven table with modals.
- * @description Uses BrandService signals for reactive list. Handles CRUD via modals.
- * @example Brands update auto-refreshes table via effect.
+ * @description Handles CRUD via modals with local state updates for efficiency.
+ * @example Uses client-side pagination, filtering, and sorting for generic logic.
  */
 @Component({
   selector: 'app-brand-list',
@@ -24,24 +19,65 @@ declare var bootstrap: any;
   styleUrls: ['./brand-list.component.css']
 })
 export class BrandListComponent {
-  dtOptions: DataTables.Settings = {};
-  dtTrigger: Subject<any> = new Subject<any>();  // For re-rendering
-  
-  // Signals from service (reactive)
-  brands = signal<Brand[]>([]);  // Signal<Brand[]>
-  loading = signal<boolean>(false);  // Local loading (sync with service)
-  error = signal<string>('');  // Signal<string> (avoid null issues)
-
   // Local signals
+  brands = signal<Brand[]>([]);  // All brands (client-side cache)
+  loading = signal<boolean>(false);
+  error = signal<string>('');
   selectedBrand = signal<Brand | null>(null);  // For edit/delete
   isEditing = signal<boolean>(false);  // Toggle add/edit mode
   searchTerm = signal<string>('');  // For filtering
-  filteredBrands = computed(() => 
-    this.brands().filter(brand => 
-      brand.name.toLowerCase().includes(this.searchTerm().toLowerCase())
-    )
-  );
-  totalRecords = computed(() => this.brands().length);
+  statusFilter = signal<string | null>(null); // For status filtering
+  sortBy = signal<'name' | 'createdAt'>('createdAt');
+  sortDir = signal<'asc' | 'desc'>('desc');
+  currentPage = signal<number>(1);
+  pageSize = 10;
+
+  // Computed signals
+  filteredBrands = computed(() => {
+    let data = [...this.brands()];
+
+    // Apply search filter
+    if (this.searchTerm()) {
+      data = data.filter(brand => 
+        brand.name.toLowerCase().includes(this.searchTerm().toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (this.statusFilter()) {
+      data = data.filter(brand => brand.status === this.statusFilter());
+    }
+
+    // Apply sorting
+    data.sort((a, b) => {
+      let comp = 0;
+      if (this.sortBy() === 'name') {
+        comp = a.name.localeCompare(b.name);
+      } else if (this.sortBy() === 'createdAt') {
+        comp = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      return this.sortDir() === 'asc' ? comp : -comp;
+    });
+
+    return data;
+  });
+
+  paginatedBrands = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredBrands().slice(start, start + this.pageSize);
+  });
+
+  totalRecords = computed(() => this.filteredBrands().length);
+
+  totalPages = computed(() => Math.ceil(this.totalRecords() / this.pageSize));
+
+  pageArray = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
+
+  sortText = computed(() => {
+    if (this.sortBy() === 'createdAt' && this.sortDir() === 'desc') return 'Latest';
+    return this.sortDir() === 'asc' ? 'Ascending' : 'Descending';
+  });
+
   selectAll = signal<boolean>(false);  // For checkboxes
   selectedRows = signal<Set<string>>(new Set());  // Track selected IDs
 
@@ -59,31 +95,11 @@ export class BrandListComponent {
     private toastr: ToastrService,
     private cdr: ChangeDetectorRef
   ) {
-    this.dtOptions = {
-      pagingType: 'full_numbers',
-      pageLength: 10,  // Customize as needed
-      processing: true,
-      order: [[1, 'asc']]  // Sort by Brand column
-    };
-    // Sync local signals with service
-    effect(() => {
-      this.brands.set(this.brandSvc.brandsSignal());
-      this.loading.set(this.brandSvc.loading());
-      this.error.set(this.brandSvc.error() || '');
-      this.cdr.markForCheck();  // Ensure UI updates
-    });
-
     // Init form
     this.addEditForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
-      status: ['Active', Validators.required],
+      status: ['active', Validators.required],
       imageUrl: ['', Validators.pattern(ValidationUtils.isValidUrl ? new RegExp(ValidationUtils.isValidUrl) : '')]  // Optional
-    });
-
-    // Effect: Auto-filter and refetch on search change
-    effect(() => {
-      const term = this.searchTerm();
-      this.brandSvc.search(term);
     });
 
     // Initial load
@@ -91,17 +107,14 @@ export class BrandListComponent {
   }
 
   /**
-   * Load brands (handles loading/error).
+   * Load all brands (initial fetch).
    */
   loadBrands(): void {
     this.loading.set(true);
     this.error.set('');
-    this.brandSvc.getBrands({ page: 1 }).subscribe({ 
+    this.brandSvc.getBrands().subscribe({ 
       next: (brands: Brand[]) => {
-        this.brands.set(brands);  // Store data locally
-        this.filteredBrands = computed(() => this.brands().filter(b => 
-          b.name.toLowerCase().includes(this.searchTerm().toLowerCase())
-        ));
+        this.brands.set(brands);
         this.loading.set(false);
       },
       error: (err: any) => {
@@ -119,7 +132,7 @@ export class BrandListComponent {
     const checked = (event.target as HTMLInputElement).checked;
     this.selectAll.set(checked);
     if (checked) {
-      this.selectedRows.set(new Set(this.brands().map(b => b.id)));
+      this.selectedRows.set(new Set(this.paginatedBrands().map(b => b.id)));
     } else {
       this.selectedRows.set(new Set());
     }
@@ -137,7 +150,7 @@ export class BrandListComponent {
       return new Set(set);
     });
     // Update selectAll if all checked
-    this.selectAll.set(this.selectedRows().size === this.brands().length);
+    this.selectAll.set(this.selectedRows().size === this.paginatedBrands().length);
   }
 
   /**
@@ -145,7 +158,7 @@ export class BrandListComponent {
    */
   openAddModal(): void {
     this.isEditing.set(false);
-    this.addEditForm.reset({ status: 'Active' });
+    this.addEditForm.reset({ status: 'active' });
     const modal = new bootstrap.Modal(this.addBrandModal.nativeElement);
     modal.show();
   }
@@ -159,7 +172,7 @@ export class BrandListComponent {
     this.selectedBrand.set(brand);
     this.addEditForm.patchValue({
       name: brand.name,
-      status: brand.status || 'Active',
+      status: brand.status || 'active',
       imageUrl: brand.imageUrl || ''
     });
     const modal = new bootstrap.Modal(this.editBrandModal.nativeElement);
@@ -167,7 +180,7 @@ export class BrandListComponent {
   }
 
   /**
-   * Submit form.
+   * Submit form (add or edit with local update).
    */
   onSubmit(): void {
     if (this.addEditForm.invalid) {
@@ -178,23 +191,36 @@ export class BrandListComponent {
     const payload: CreateBrand = this.addEditForm.value;
     this.loading.set(true);
 
-    const request$ = this.isEditing()
-      ? this.brandSvc.update(this.selectedBrand()!.id, payload)
-      : this.brandSvc.create(payload);
-
-    request$.subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.toastr.success(this.isEditing() ? 'Brand updated' : 'Brand added');
-        this.closeModal(this.isEditing() ? 'edit-brand' : 'add-brand');
-      },
-      error: err => {
-        this.loading.set(false);
-        this.toastr.error(err.message || 'Operation failed');
-      }
-    });
+    if (!this.isEditing()) {
+      // Add
+      this.brandSvc.create(payload).subscribe({
+        next: (newBrand: Brand) => {
+          this.brands.update(list => [...list, { ...newBrand, status: newBrand.status ?? 'active' }]);
+          this.toastr.success('Brand added');
+          this.closeModal('add-brand');
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.toastr.error(err.message || 'Operation failed');
+          this.loading.set(false);
+        }
+      });
+    } else {
+      // Edit
+      this.brandSvc.update(this.selectedBrand()!.id, payload).subscribe({
+        next: (updated: Brand) => {
+          this.brands.update(list => list.map(b => b.id === updated.id ? { ...updated, status: updated.status ?? 'active' } : b));
+          this.toastr.success('Brand updated');
+          this.closeModal('edit-brand');
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.toastr.error(err.message || 'Operation failed');
+          this.loading.set(false);
+        }
+      });
+    }
   }
-
 
   /**
    * Open delete modal.
@@ -207,21 +233,19 @@ export class BrandListComponent {
   }
 
   /**
-   * Confirm delete.
+   * Confirm delete (with local update).
    */
   confirmDelete(): void {
     const id = this.selectedBrand()?.id;
     if (id) {
-      console.log(id)
       this.loading.set(true);
       this.error.set('');
       this.brandSvc.deleteBrand(id).subscribe({
         next: () => {
-          this.loading.set(false);
+          this.brands.update(brands => brands.filter(b => b.id !== id));
           this.toastr.success('Brand deleted');
           this.closeModal('delete-modal');
-          this.filteredBrands().filter(b => b.id !== id);
-          // this.brandSvc.invalidateCache();
+          this.loading.set(false);
         },
         error: (err: any) => {
           this.loading.set(false);
@@ -237,31 +261,36 @@ export class BrandListComponent {
    */
   onSearch(term: string): void {
     this.searchTerm.set(term);
+    this.currentPage.set(1); // Reset to first page on search
   }
 
   /**
    * Filter by status (update filter).
-   * @param status 'Active' | 'Inactive'.
+   * @param status 'active' | 'inactive' | 'all'.
    */
   onFilterStatus(status: string): void {
-    // Local filter example
-    this.filteredBrands = computed(() => this.brands().filter(b => b.status === status));
-    this.toastr.info(`Filtered by ${status}`);
+    this.statusFilter.set(status === 'all' ? null : status);
+    this.currentPage.set(1); // Reset to first page on filter
+    this.toastr.info(`Filtered by ${status === 'all' ? 'All' : status}`);
   }
 
   /**
    * Sort by field.
-   * @param field Sort field.
+   * @param type 'latest' | 'asc' | 'desc'.
    */
-  onSort(field: 'name' | 'createdAt' | 'status'): void {
-    // Local sort
-    this.brands.update(brands => [...brands].sort((a, b) => {
-      if (field === 'name') return a.name.localeCompare(b.name);
-      if (field === 'createdAt') return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      if (field === 'status') return (a.status || '').localeCompare(b.status || '');
-      return 0;
-    }));
-    this.toastr.info(`Sorted by ${field}`);
+  onSort(type: string): void {
+    if (type === 'latest') {
+      this.sortBy.set('createdAt');
+      this.sortDir.set('desc');
+    } else if (type === 'asc') {
+      this.sortBy.set('name');
+      this.sortDir.set('asc');
+    } else if (type === 'desc') {
+      this.sortBy.set('name');
+      this.sortDir.set('desc');
+    }
+    this.currentPage.set(1); // Reset to first page on sort
+    this.toastr.info(`Sorted by ${type}`);
   }
 
   /**
@@ -282,7 +311,7 @@ export class BrandListComponent {
    * Refresh.
    */
   refresh(): void {
-    // this.brandSvc.invalidateCache();
+    this.loadBrands();
     this.toastr.info('Refreshed');
   }
 
@@ -298,22 +327,3 @@ export class BrandListComponent {
   get isFormValid(): boolean { return this.addEditForm.valid; }
   get formErrors(): any { return this.addEditForm.errors; }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
