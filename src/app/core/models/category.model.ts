@@ -5,11 +5,12 @@
 export interface Category {
   id: string;
   name: string;
-  description?: string;
   createdAt: Date;
   createdByUserId: string;
   updatedAt?: Date;
   updatedByUserId?: string;
 }
+
+
 
 export type CreateCategory = Omit<Category, 'id' | 'createdAt' | 'updatedByUserId' | 'updatedAt'>;
