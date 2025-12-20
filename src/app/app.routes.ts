@@ -42,6 +42,14 @@ export const routes: Routes = [
         path: 'brand',
         loadChildren: () => import('./modules/brand/brand.module').then(m => m.BrandModule)
       },
+      {
+        path: 'category',
+        loadChildren: () => import('./modules/category/category.module').then(m => m.CategoryModule)
+      },
+      {
+        path: 'subcategory',
+        loadChildren: () => import('./modules/subcategory/subcategory.module').then(m => m.SubCategoryModule)
+      },
       // Add similar for inventory, products, sales, etc.
       // Example global route (if needed, e.g., a shared settings page)
       // {
