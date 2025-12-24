@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://localhost:7083/api/',
+  apiUrl: 'http://192.168.100.3:8080/api/',
   jwt: {
     issuer: 'https://your-prod-api.com',
     audience: 'https://your-prod-api.com',
