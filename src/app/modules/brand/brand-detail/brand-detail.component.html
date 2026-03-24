@@ -1,0 +1,30 @@
+<div class="modal fade" #detailModal>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="page-title">
+          <h4>Brand Details</h4>
+        </div>
+        <button type="button" class="close bg-danger text-white fs-16" data-bs-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body new-employee-field text-center">
+        @if (selectedBrand()?.imageUrl) {
+          <img [src]="selectedBrand()?.imageUrl" alt="Brand" class="img-fluid rounded mb-3" style="max-height: 180px; object-fit: contain;">
+        } @else {
+          <div class="text-muted mb-3">No image</div>
+        }
+        <h5 class="fw-bold">{{ selectedBrand()?.name }}</h5>
+        <!-- <p class="text-muted">Created: {{ selectedBrand()?.createdAt | date:'medium' }}</p> -->
+        <!-- <span class="badge table-badge fw-medium fs-10" 
+              [ngClass]="{ 'bg-success': selectedBrand()?.status === 'active', 'bg-danger': selectedBrand()?.status === 'inactive' }">
+          {{ selectedBrand()?.status || 'N/A' }}
+        </span> -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
